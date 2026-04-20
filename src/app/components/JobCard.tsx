@@ -11,6 +11,8 @@ export interface Job {
   vehicleType: string;
   serviceType: string;
   timeSlot: string;
+  /** Total scheduled minutes when returned by the API. */
+  durationMinutes?: number;
   tip?: number;
   status: JobStatus;
   coordinates?: { lat: number; lng: number };
@@ -198,6 +200,9 @@ export function JobCard({
           <div>
             <p className="text-xs text-muted-foreground">#{job.id}</p>
             <p className="text-xs text-muted-foreground">{job.timeSlot}</p>
+            {job.durationMinutes != null && Number.isFinite(job.durationMinutes) && (
+              <p className="text-xs text-muted-foreground">{job.durationMinutes} min</p>
+            )}
           </div>
           <StatusBadge status={job.status} />
         </div>

@@ -58,6 +58,15 @@ export function Login({ onLogin }: LoginProps) {
               className="h-12 bg-input-background border-border"
               autoComplete="current-password"
             />
+            <div className="flex justify-end pt-0.5">
+              <button
+                type="button"
+                onClick={() => alert('Please contact your manager or the main administrator to reset your password.')}
+                className="text-[12px] font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
           </div>
 
           <Button

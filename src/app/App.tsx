@@ -50,6 +50,9 @@ function mapBookingToJob(raw: any): Job {
   } else {
     status = 'scheduled';
   }
+  const dmRaw = raw.duration_minutes ?? raw.durationMinutes;
+  const durationMinutes =
+    typeof dmRaw === 'number' && Number.isFinite(dmRaw) ? Math.round(dmRaw) : undefined;
   return {
     id,
     customerName: String(raw.customer_name ?? raw.customerName ?? '—'),
@@ -60,6 +63,7 @@ function mapBookingToJob(raw: any): Job {
     ),
     pinCode: String(raw.city_pin_code ?? raw.pin_code ?? ''),
     timeSlot: slotDate && st && et ? `${format12h(st)} - ${format12h(et)}` : `${st} - ${et}`,
+    ...(durationMinutes != null ? { durationMinutes } : {}),
     tip: Number(raw.tip_cents ?? 0) > 0 ? Math.round(Number(raw.tip_cents ?? 0) / 100) : undefined,
     status,
   };
