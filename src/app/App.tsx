@@ -102,6 +102,32 @@ export default function App() {
   };
 
   const handleLogin = async ({ loginId, password }: { loginId: string; password: string }) => {
+    // Prefer branch login first so branch washers with overlapping credentials
+    // don't get auto-routed into mobile mode and miss assigned branch jobs.
+    try {
+      const branches = await apiListBranches();
+      for (const b of branches) {
+        try {
+          const t = await apiWasherLogin(b.id, loginId, password);
+          setUserRole('branch');
+          const s: WasherSession = { mode: 'branch', branchId: b.id, branchName: b.name, loginId, accessToken: t.access_token };
+          writeSession(s);
+          setSession(s);
+          setMobileLoggedIn(false);
+          setAvailableJobs([]);
+          setPinCodeSearch('');
+          setSelectedPinCode('');
+          toast.success('Signed in');
+          await loadBranchJobs(t.access_token);
+          return;
+        } catch {
+          // try next branch
+        }
+      }
+    } catch {
+      // fall through to mobile login
+    }
+
     try {
       const t = await apiMobileWasherLogin(loginId, password);
       const pin = String(t.city_pin_code ?? '').replace(/\D/g, '').slice(0, 6);
@@ -120,33 +146,10 @@ export default function App() {
       toast.success('Signed in');
       return;
     } catch {
-      // try branch washer across all branches
+      // branch + mobile both failed
     }
-
     setMobileLoggedIn(false);
-    try {
-      const branches = await apiListBranches();
-      for (const b of branches) {
-        try {
-          const t = await apiWasherLogin(b.id, loginId, password);
-          setUserRole('branch');
-          const s: WasherSession = { mode: 'branch', branchId: b.id, branchName: b.name, loginId, accessToken: t.access_token };
-          writeSession(s);
-          setSession(s);
-          setAvailableJobs([]);
-          setPinCodeSearch('');
-          setSelectedPinCode('');
-          toast.success('Signed in');
-          await loadBranchJobs(t.access_token);
-          return;
-        } catch {
-          // try next branch
-        }
-      }
-      toast.error('No active washer matches those credentials.');
-    } catch {
-      toast.error('Login failed. Check backend connection.');
-    }
+    toast.error('No active washer matches those credentials.');
   };
 
   const handleLogout = () => {
