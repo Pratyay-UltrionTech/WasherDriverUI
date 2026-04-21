@@ -3,17 +3,16 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 
 interface LoginProps {
-  onLogin: (params: { loginId: string; password: string; pinCode?: string }) => void;
+  onLogin: (params: { loginId: string; password: string }) => void;
   signingIn?: boolean;
 }
 
 export function Login({ onLogin, signingIn = false }: LoginProps) {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
-  const [pinCode, setPinCode] = useState('');
 
   const handleLogin = () => {
-    onLogin({ loginId: loginId.trim(), password, pinCode: pinCode.trim() || undefined });
+    onLogin({ loginId: loginId.trim(), password });
   };
 
   return (
@@ -48,17 +47,6 @@ export function Login({ onLogin, signingIn = false }: LoginProps) {
               onChange={(e) => setLoginId(e.target.value)}
               className="h-12 bg-input-background border-border"
               autoComplete="username"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Input
-              type="text"
-              placeholder="City PIN (for mobile driver)"
-              value={pinCode}
-              onChange={(e) => setPinCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              className="h-12 bg-input-background border-border"
-              autoComplete="postal-code"
             />
           </div>
 

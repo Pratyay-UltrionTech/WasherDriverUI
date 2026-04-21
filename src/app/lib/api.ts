@@ -28,7 +28,11 @@ function normalizeMobilePin(raw: string): string {
     .slice(0, 6);
 }
 
-export type MobileWasherLoginResult = TokenResponse & { city_pin_code?: string };
+export type MobileWasherLoginResult = TokenResponse & {
+  city_pin_code?: string;
+  service_pin_code?: string;
+  serviceable_zip_codes?: string[];
+};
 
 /** Optional PIN; omit to use only login ID + password (response includes city_pin_code for the session). */
 export async function apiMobileWasherLogin(

@@ -104,7 +104,7 @@ export default function App() {
     setHistoryJobs(history.map(mapBookingToJob));
   };
 
-  const handleLogin = async ({ loginId, password, pinCode }: { loginId: string; password: string; pinCode?: string }) => {
+  const handleLogin = async ({ loginId, password }: { loginId: string; password: string }) => {
     setIsSigningIn(true);
     // Prefer branch login first so branch washers with overlapping credentials
     // don't get auto-routed into mobile mode and miss assigned branch jobs.
@@ -133,20 +133,36 @@ export default function App() {
     }
 
     try {
-      const t = await apiMobileWasherLogin(loginId, password, pinCode);
+      const t = await apiMobileWasherLogin(loginId, password);
       const pin = String(t.city_pin_code ?? '').replace(/\D/g, '').slice(0, 6);
       if (!pin) {
         toast.error('Login succeeded but city PIN was missing; contact support.');
         return;
       }
+      const servicePins = Array.from(
+        new Set(
+          (Array.isArray(t.serviceable_zip_codes) ? t.serviceable_zip_codes : [])
+            .map((x) => String(x || '').replace(/\D/g, '').slice(0, 6))
+            .filter(Boolean)
+            .concat(pin)
+        )
+      );
       setUserRole('mobile');
-      const s: WasherSession = { mode: 'mobile', cityPinCode: pin, loginId, accessToken: t.access_token };
+      const s: WasherSession = {
+        mode: 'mobile',
+        cityPinCode: pin,
+        servicePinCode: String(t.service_pin_code ?? '').replace(/\D/g, '').slice(0, 6),
+        serviceablePinCodes: servicePins,
+        loginId,
+        accessToken: t.access_token,
+      };
       writeSession(s);
       setSession(s);
       setMobileLoggedIn(true);
-      setPinCodeSearch(pin);
-      setSelectedPinCode(pin);
-      await loadMobileData(t.access_token, pin);
+      const defaultSearchPin = servicePins[0] || pin;
+      setPinCodeSearch(defaultSearchPin);
+      setSelectedPinCode(defaultSearchPin);
+      await loadMobileData(t.access_token, defaultSearchPin);
       toast.success('Signed in');
       return;
     } catch (e) {
@@ -267,10 +283,12 @@ export default function App() {
     .reduce((sum, j) => sum + 25 + (j.tip || 0), 0);
 
   const pinCodeOptions = useMemo(() => {
+    if (session?.mode !== 'mobile') return [];
+    const all = Array.from(new Set((session.serviceablePinCodes ?? []).filter(Boolean)));
     const term = pinCodeSearch.trim();
-    if (!term) return selectedPinCode ? [selectedPinCode] : [];
-    return [term];
-  }, [pinCodeSearch, selectedPinCode]);
+    if (!term) return all;
+    return all.filter((x) => x.includes(term));
+  }, [pinCodeSearch, session]);
 
   const mobileAvailableJobs = useMemo(() => availableJobs, [availableJobs]);
 

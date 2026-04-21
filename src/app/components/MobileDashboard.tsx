@@ -9,6 +9,24 @@ interface MobileDashboardProps {
   onNavigate: (address: string, coordinates?: { lat: number; lng: number }) => void;
 }
 
+function toDateOnly(value?: string): Date | null {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const d = new Date(`${raw}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const mmddyyyy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mmddyyyy) {
+    const [, m, d, y] = mmddyyyy;
+    const dt = new Date(Number(y), Number(m) - 1, Number(d));
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  }
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+}
+
 export function MobileDashboard({
   jobs,
   availableJobs,
@@ -16,7 +34,14 @@ export function MobileDashboard({
   onAcceptJob,
   onNavigate,
 }: MobileDashboardProps) {
-  const activeJobs = jobs.filter((j) => j.status !== 'completed' && j.status !== 'cancelled');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const activeJobs = jobs
+    .filter((j) => j.status !== 'completed' && j.status !== 'cancelled')
+    .filter((j) => {
+      const d = toDateOnly(j.slotDate);
+      return d ? d >= today : true;
+    });
   const completedJobs = jobs.filter((j) => j.status === 'completed');
   const totalTips = jobs
     .filter((j) => j.status === 'completed')
@@ -28,7 +53,18 @@ export function MobileDashboard({
     acc[dateKey].push(job);
     return acc;
   }, {});
-  const orderedDateKeys = Object.keys(jobsByDate).sort((a, b) => a.localeCompare(b));
+  const orderedDateKeys = Object.keys(jobsByDate).sort((a, b) => {
+    const da = toDateOnly(a);
+    const db = toDateOnly(b);
+    if (da && db) return da.getTime() - db.getTime();
+    if (da) return -1;
+    if (db) return 1;
+    return a.localeCompare(b);
+  });
+  const todayJobsCount = activeJobs.filter((j) => {
+    const d = toDateOnly(j.slotDate);
+    return d ? d.getTime() === today.getTime() : false;
+  }).length;
 
   return (
     <div className="pb-6">
@@ -74,7 +110,7 @@ export function MobileDashboard({
               </svg>
             }
             label="Jobs Today"
-            value={activeJobs.length}
+            value={todayJobsCount}
           />
           <SummaryCard
             icon={

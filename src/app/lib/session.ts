@@ -5,6 +5,8 @@ export type WasherSession = {
   branchId?: string;
   branchName?: string;
   cityPinCode?: string;
+  servicePinCode?: string;
+  serviceablePinCodes?: string[];
   loginId: string;
   accessToken: string;
 };
