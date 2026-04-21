@@ -16,11 +16,19 @@ export function MobileDashboard({
   onAcceptJob,
   onNavigate,
 }: MobileDashboardProps) {
-  const todayJobs = jobs.filter((j) => j.status !== 'completed' && j.status !== 'cancelled');
+  const activeJobs = jobs.filter((j) => j.status !== 'completed' && j.status !== 'cancelled');
   const completedJobs = jobs.filter((j) => j.status === 'completed');
   const totalTips = jobs
     .filter((j) => j.status === 'completed')
     .reduce((sum, j) => sum + (j.tip || 0), 0);
+
+  const jobsByDate = activeJobs.reduce<Record<string, Job[]>>((acc, job) => {
+    const dateKey = String(job.slotDate || '').trim() || 'Scheduled';
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(job);
+    return acc;
+  }, {});
+  const orderedDateKeys = Object.keys(jobsByDate).sort((a, b) => a.localeCompare(b));
 
   return (
     <div className="pb-6">
@@ -66,7 +74,7 @@ export function MobileDashboard({
               </svg>
             }
             label="Jobs Today"
-            value={todayJobs.length}
+            value={activeJobs.length}
           />
           <SummaryCard
             icon={
@@ -109,17 +117,24 @@ export function MobileDashboard({
         </div>
 
         <div>
-          <h2 className="mb-3">Today's Jobs</h2>
+          <h2 className="mb-3">Today's + Upcoming Jobs</h2>
           <div className="space-y-3">
-            {todayJobs.length > 0 ? (
-              todayJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  role="mobile"
-                  onStatusChange={onStatusChange}
-                  onNavigate={onNavigate}
-                />
+            {orderedDateKeys.length > 0 ? (
+              orderedDateKeys.map((dateKey) => (
+                <div key={dateKey} className="space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground">{dateKey}</p>
+                  <div className="space-y-3">
+                    {jobsByDate[dateKey].map((job) => (
+                      <JobCard
+                        key={job.id}
+                        job={job}
+                        role="mobile"
+                        onStatusChange={onStatusChange}
+                        onNavigate={onNavigate}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))
             ) : (
               <div className="text-center py-12 text-muted-foreground">

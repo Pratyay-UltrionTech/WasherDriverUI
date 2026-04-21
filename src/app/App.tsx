@@ -21,6 +21,7 @@ import {
   apiMobileWasherHistory,
   apiMobileWasherJobs,
   apiMobileWasherLogin,
+  apiMobileSetUnavailableDate,
   apiPatchWasherJob,
   apiWasherJobs,
   apiWasherLogin,
@@ -55,6 +56,7 @@ function mapBookingToJob(raw: any): Job {
     typeof dmRaw === 'number' && Number.isFinite(dmRaw) ? Math.round(dmRaw) : undefined;
   return {
     id,
+    slotDate,
     customerName: String(raw.customer_name ?? raw.customerName ?? '—'),
     address: String(raw.address ?? '—'),
     vehicleType: String(raw.vehicle_type ?? raw.vehicleType ?? '—'),
@@ -84,6 +86,7 @@ export default function App() {
   const [calendarInactiveEntries, setCalendarInactiveEntries] = useState<CalendarInactiveEntry[]>(
     [],
   );
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const loadBranchJobs = async (accessToken: string) => {
     const rows = await apiWasherJobs(accessToken);
@@ -101,7 +104,8 @@ export default function App() {
     setHistoryJobs(history.map(mapBookingToJob));
   };
 
-  const handleLogin = async ({ loginId, password }: { loginId: string; password: string }) => {
+  const handleLogin = async ({ loginId, password, pinCode }: { loginId: string; password: string; pinCode?: string }) => {
+    setIsSigningIn(true);
     // Prefer branch login first so branch washers with overlapping credentials
     // don't get auto-routed into mobile mode and miss assigned branch jobs.
     try {
@@ -129,7 +133,7 @@ export default function App() {
     }
 
     try {
-      const t = await apiMobileWasherLogin(loginId, password);
+      const t = await apiMobileWasherLogin(loginId, password, pinCode);
       const pin = String(t.city_pin_code ?? '').replace(/\D/g, '').slice(0, 6);
       if (!pin) {
         toast.error('Login succeeded but city PIN was missing; contact support.');
@@ -145,12 +149,16 @@ export default function App() {
       await loadMobileData(t.access_token, pin);
       toast.success('Signed in');
       return;
-    } catch {
-      // branch + mobile both failed
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Invalid credentials');
+      setIsSigningIn(false);
+      return;
     }
-    setMobileLoggedIn(false);
-    toast.error('No active washer matches those credentials.');
   };
+
+  useEffect(() => {
+    if (session) setIsSigningIn(false);
+  }, [session]);
 
   const handleLogout = () => {
     clearSession();
@@ -179,6 +187,11 @@ export default function App() {
         entry.scope === 'full_day' ? prev.filter((p) => p.date !== entry.date) : prev;
       return [...base, { ...entry, id: crypto.randomUUID() }];
     });
+    if (session?.mode === 'mobile' && entry.scope === 'full_day') {
+      void apiMobileSetUnavailableDate(session.accessToken, entry.date).catch(() => {
+        toast.error('Failed to sync unavailable day');
+      });
+    }
     toast.success('Inactive period saved');
   };
 
@@ -288,7 +301,7 @@ export default function App() {
       : Boolean((session && session.mode === 'mobile') || mobileLoggedIn);
 
   if (!isLoggedIn) {
-    return <Login onLogin={handleLogin} />;
+    return <Login onLogin={handleLogin} signingIn={isSigningIn} />;
   }
 
   return (

@@ -5,6 +5,7 @@ export type JobStatus = 'scheduled' | 'arrived' | 'in_progress' | 'completed' | 
 
 export interface Job {
   id: string;
+  slotDate?: string;
   customerName: string;
   address: string;
   pinCode?: string;

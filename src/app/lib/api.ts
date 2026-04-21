@@ -46,7 +46,15 @@ export async function apiMobileWasherLogin(
     }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(typeof data?.detail === 'string' ? data.detail : 'Invalid credentials');
+  if (!res.ok) {
+    const detail =
+      typeof data?.detail === 'string'
+        ? data.detail
+        : typeof data?.detail?.detail === 'string'
+          ? data.detail.detail
+          : 'Invalid credentials';
+    throw new Error(detail);
+  }
   return data as MobileWasherLoginResult;
 }
 
@@ -90,6 +98,16 @@ export async function apiMobileWasherAvailableJobs(accessToken: string, pinCode:
   const data = await res.json().catch(() => []);
   if (!res.ok) throw new Error('Failed to load available mobile jobs');
   return data as any[];
+}
+
+export async function apiMobileSetUnavailableDate(accessToken: string, dateISO: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/washer/mobile/availability/unavailable-dates`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ date: dateISO }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data?.detail === 'string' ? data.detail : 'Failed to save unavailable date');
 }
 
 export async function apiMobileAcceptJob(accessToken: string, bookingId: string): Promise<any> {
