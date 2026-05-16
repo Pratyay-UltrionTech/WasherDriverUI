@@ -44,9 +44,8 @@ export function HistoryModal({ open, onClose, jobs, hideCustomerAddress }: Histo
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="min-w-0">
-                    <p className="text-xs text-primary font-medium mb-1">Job #{index + 1}</p>
                     <p className="font-medium">{job.customerName}</p>
-                    <p className="text-xs text-muted-foreground">#{job.id}</p>
+                    <p className="text-xs text-muted-foreground">{'#' + job.id.replace(/-/g, '').slice(-6).toUpperCase()}</p>
                   </div>
                   <StatusBadge status={job.status} />
                 </div>
@@ -66,7 +65,12 @@ export function HistoryModal({ open, onClose, jobs, hideCustomerAddress }: Histo
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    {job.timeSlot}
+                    <span>
+                      {job.slotDate
+                        ? new Date(job.slotDate + 'T12:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) + ' · '
+                        : ''}
+                      {job.timeSlot}
+                    </span>
                   </div>
 
                   {!hideCustomerAddress && (
@@ -88,18 +92,23 @@ export function HistoryModal({ open, onClose, jobs, hideCustomerAddress }: Histo
                     </div>
                   )}
 
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-2 border-t border-border">
-                    <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-xs">
-                        {job.vehicleType}
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-xs">
+                      {job.vehicleType}
+                    </span>
+                    {job.vehicleName ? (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
+                        {job.vehicleName}
                       </span>
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-xs">
-                        {job.serviceType}
+                    ) : null}
+                    {job.registrationNumber ? (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-xs font-mono font-medium text-foreground/70 border border-slate-200">
+                        {job.registrationNumber}
                       </span>
-                    </div>
-                    {job.tip && job.tip > 0 && (
-                      <span className="text-success font-semibold">+${job.tip}</span>
-                    )}
+                    ) : null}
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">
+                      {job.serviceType}
+                    </span>
                   </div>
                 </div>
               </div>
