@@ -66,26 +66,18 @@ export function EarningsModal({ open, onClose, jobs }: EarningsModalProps) {
                   return (
                     <div
                       key={job.id}
-                      className="rounded-lg border border-border bg-muted/30 px-3 py-2.5 space-y-1.5"
+                      className="rounded-lg border border-border bg-muted/30 px-3 py-2.5 space-y-0.5"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-medium truncate">{job.customerName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {'#' + job.id.replace(/-/g, '').slice(-6).toUpperCase()} · Service ${fmt(service)}{tip > 0 ? ` + Tip $${fmt(tip)}` : ''}
-                          </p>
-                        </div>
+                        <p className="font-medium truncate">{job.customerName}</p>
                         <p className="font-semibold text-primary shrink-0">${fmt(jobTotal)}</p>
                       </div>
-                      {(job.addons ?? []).filter(Boolean).length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-border/60">
-                          {(job.addons ?? []).filter(Boolean).map((addon) => (
-                            <span key={addon} className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary/70 text-[11px] text-foreground/75">
-                              {addon}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {'Booking ID - #' + job.id.replace(/-/g, '').slice(-6).toUpperCase()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Service ${fmt(service)}{tip > 0 ? ` · Tip $${fmt(tip)}` : ''}
+                      </p>
                     </div>
                   );
                 })}

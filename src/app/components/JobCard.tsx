@@ -155,8 +155,8 @@ export function JobCard({
     <div className="bg-card rounded-xl border border-border hover:shadow-md transition-shadow">
       {/* ── Row 1: code + status ── */}
       <div className="flex items-center justify-between px-3 pt-2.5 pb-2 border-b border-border/50">
-        <span className="text-[11px] font-mono font-semibold text-muted-foreground tracking-widest">
-          {code}
+        <span className="text-[11px] font-medium text-muted-foreground">
+          Booking ID - {code}
         </span>
         <StatusBadge status={job.status} />
       </div>
@@ -195,7 +195,7 @@ export function JobCard({
 
         {/* ── Row 4: chips ── */}
         <div className="flex flex-wrap gap-1.5">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary text-[11px] font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/70 text-[11px] text-foreground/75">
             {job.vehicleType}
           </span>
           {job.vehicleName ? (
@@ -208,7 +208,7 @@ export function JobCard({
               {job.registrationNumber}
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/70 text-[11px] text-foreground/75">
             {job.serviceType}
           </span>
           {addons.map((addon) => (

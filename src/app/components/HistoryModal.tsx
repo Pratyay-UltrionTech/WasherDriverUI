@@ -45,7 +45,7 @@ export function HistoryModal({ open, onClose, jobs, hideCustomerAddress }: Histo
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="min-w-0">
                     <p className="font-medium">{job.customerName}</p>
-                    <p className="text-xs text-muted-foreground">{'#' + job.id.replace(/-/g, '').slice(-6).toUpperCase()}</p>
+                    <p className="text-xs text-muted-foreground">{'Booking ID - #' + job.id.replace(/-/g, '').slice(-6).toUpperCase()}</p>
                   </div>
                   <StatusBadge status={job.status} />
                 </div>
@@ -92,28 +92,34 @@ export function HistoryModal({ open, onClose, jobs, hideCustomerAddress }: Histo
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-xs">
-                      {job.vehicleType}
-                    </span>
-                    {job.vehicleName ? (
+                  <div className="pt-2 border-t border-border space-y-1.5">
+                    {/* Row 1: vehicle */}
+                    <div className="flex flex-wrap gap-1.5">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
-                        {job.vehicleName}
+                        {job.vehicleType}
                       </span>
-                    ) : null}
-                    {job.registrationNumber ? (
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-xs font-mono font-medium text-foreground/70 border border-slate-200">
-                        {job.registrationNumber}
+                      {job.vehicleName ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
+                          {job.vehicleName}
+                        </span>
+                      ) : null}
+                      {job.registrationNumber ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
+                          {job.registrationNumber}
+                        </span>
+                      ) : null}
+                    </div>
+                    {/* Row 2: service + addons (no duplicates) */}
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
+                        {job.serviceType}
                       </span>
-                    ) : null}
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">
-                      {job.serviceType}
-                    </span>
-                    {(job.addons ?? []).filter(Boolean).map((addon) => (
-                      <span key={addon} className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
-                        {addon}
-                      </span>
-                    ))}
+                      {(job.addons ?? []).filter(Boolean).filter((a) => !job.serviceType.toLowerCase().includes(a.toLowerCase())).map((addon) => (
+                        <span key={addon} className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
+                          {addon}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
