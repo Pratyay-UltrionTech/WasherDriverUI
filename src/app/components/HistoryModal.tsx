@@ -109,6 +109,11 @@ export function HistoryModal({ open, onClose, jobs, hideCustomerAddress }: Histo
                     <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">
                       {job.serviceType}
                     </span>
+                    {(job.addons ?? []).filter(Boolean).map((addon) => (
+                      <span key={addon} className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/70 text-xs text-foreground/75">
+                        {addon}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
